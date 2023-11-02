@@ -1,22 +1,14 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import { loadEnv } from "vite";
+export default ({ mode }) => {
+  // Load app-level env vars to node-level env vars.
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
 
-export default defineConfig(({ command, mode }) => {
-  // Load environment variables from .env files
-  const env = loadEnv(mode, process.cwd());
-
-  return {
+  return defineConfig({
     define: {
-      "process.env.REACT_APP_CLOUDINARY_CLOUD_NAME": JSON.stringify(
-        env.REACT_APP_CLOUDINARY_CLOUD_NAME
-      ),
-      "process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET": JSON.stringify(
-        env.REACT_APP_CLOUDINARY_UPLOAD_PRESET
-      ),
-      // If you want to exposes all env variables, which is not recommended
-      // 'process.env': env
+      "process.env.VITE_REACT_APP_CLOUDINARY_CLOUD_NAME": `"${process.env.VITE_REACT_APP_CLOUDINARY_CLOUD_NAME}"`,
+      "process.env.VITE_REACT_APP_CLOUDINARY_UPLOAD_PRESET": `"${process.env.VITE_REACT_APP_CLOUDINARY_UPLOAD_PRESET}"`,
     },
     plugins: [react()],
-  };
-});
+  });
+};

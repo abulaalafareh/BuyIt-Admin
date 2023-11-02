@@ -1,6 +1,7 @@
 import { useFormik } from "formik";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import * as Yup from "yup";
+import { Image } from "cloudinary-react";
 
 function CreateProduct() {
   const formData = {
@@ -11,12 +12,40 @@ function CreateProduct() {
     sizeCount: {},
     total: "",
     remaining: "",
+    images: [],
   };
+  const [image, setImage] = useState(null);
+
+  const cloudName = process.env.VITE_REACT_APP_CLOUDINARY_CLOUD_NAME;
+  const preset = process.env.VITE_REACT_APP_CLOUDINARY_UPLOAD_PRESET;
+  console.log(cloudName, preset);
 
   // category selection
   const [selectedCategory, setSelectedCategory] = useState(""); // State to hold the selected category
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
+  };
+
+  //  upload image to cloudinary
+  const uploadImage = async (event) => {
+    const file = event.target.files[0];
+    const formData2 = new FormData();
+    formData2.append("file", file);
+    formData2.append("upload_preset", preset);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData2,
+      }
+    );
+
+    const data = await response.json();
+    setImage(data.secure_url);
+    formData.images.push(image);
+    console.log(image);
+    console.log(formData);
   };
 
   const productSchema = Yup.object({
@@ -164,27 +193,52 @@ function CreateProduct() {
         </div>
 
         <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-semibold mb-2"
-            htmlFor="sale"
-          >
-            Sale (%)
-          </label>
-          <input
-            className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="sale"
-            name="sale"
-            type="text"
-            placeholder="0%"
-            onChange={handleChange}
-            onBlur={handleBlur}
-            value={values.sale}
-          />
-          {errors.sale && touched.sale ? (
-            <p className="text-red-500 form-error">{errors.sale}</p>
-          ) : null}
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                className="block text-gray-700 text-sm font-semibold mb-2"
+                htmlFor="sale"
+              >
+                sale Items
+              </label>
+              <input
+                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="sale"
+                name="sale"
+                type="text"
+                placeholder="sale"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={values.sale}
+              />
+              {errors.sale && touched.sale ? (
+                <p className="text-red-500 form-error">{errors.sale}</p>
+              ) : null}
+            </div>
 
+            <div>
+              <label
+                className="block text-gray-700 text-sm font-semibold mb-2"
+                htmlFor="images"
+              >
+                Images for product
+              </label>
+              <input
+                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="images"
+                name="images"
+                type="file"
+                placeholder="images"
+                onBlur={handleBlur}
+                value={values.images}
+                onChange={uploadImage}
+              />
+              {errors.images && touched.images ? (
+                <p className="text-red-500 form-error">{errors.images}</p>
+              ) : null}
+            </div>
+          </div>
+        </div>
         <div className="flex items-center justify-center">
           <button
             className="hover:bg-green-700 shadow-md rounded-full px-6 py-3 font-semibold text-white bg-button"
@@ -193,6 +247,14 @@ function CreateProduct() {
             Add product
           </button>
         </div>
+        {image && (
+          <Image
+            cloudName="your_cloud_name"
+            publicId={image}
+            width="300"
+            crop="scale"
+          />
+        )}
       </form>
     </div>
   );
