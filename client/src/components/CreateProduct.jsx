@@ -19,7 +19,7 @@ function CreateProduct() {
     // quantity: 0,
   };
   // const [sizeQuantityPairs, setSizeQuantityPairs] = useState([]); // State to store size-quantity pairs
-
+  const [img, setImg] = useState([]);
   const cloudName = process.env.VITE_REACT_APP_CLOUDINARY_CLOUD_NAME;
   const preset = process.env.VITE_REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
@@ -40,9 +40,11 @@ function CreateProduct() {
   // };
 
   const uploadImage = async (file) => {
+    const selectedFile = file.target.files[0];
+    console.log(selectedFile);
     console.log(file);
     const formData2 = new FormData();
-    formData2.append("file", file);
+    formData2.append("file", selectedFile);
     formData2.append("upload_preset", preset);
 
     const response = await fetch(
@@ -54,7 +56,8 @@ function CreateProduct() {
     );
 
     const data = await response.json();
-    return data.secure_url;
+    setImg([...img, data.secure_url]);
+    console.log(img);
   };
 
   const productSchema = Yup.object({
@@ -72,23 +75,17 @@ function CreateProduct() {
     //   .required("At least one image is required"),
   });
 
-  const {
-    values,
-    errors,
-    touched,
-    handleBlur,
-    handleChange,
-    handleSubmit,
-    setFieldValue,
-  } = useFormik({
-    initialValues: formData,
-    validationSchema: productSchema,
-    onSubmit: async (values) => {
-      console.log("Form Values", values);
-      console.log("Errors", errors);
-      // Submit the form values here
-    },
-  });
+  const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
+    useFormik({
+      initialValues: formData,
+      validationSchema: productSchema,
+      onSubmit: async (values) => {
+        values.images = img;
+        console.log("Form Values", values);
+        console.log("Errors", errors);
+        // Submit the form values here
+      },
+    });
 
   return (
     <div>
@@ -269,21 +266,21 @@ function CreateProduct() {
                 name="image"
                 type="file"
                 placeholder="image"
-                onChange={handleChange}
+                onChange={uploadImage}
                 onBlur={handleBlur}
                 value={values.image}
               />
-              <button
-                type="button"
-                onClick={() =>
-                  setFieldValue("images", [
-                    ...values.images,
-                    uploadImage(values.image),
-                  ])
-                } // add an empty string to the array
-              >
-                Add image
-              </button>
+              <div className="flex flex-row">
+                {img &&
+                  img.map((url, index) => (
+                    <img
+                      key={index}
+                      src={url}
+                      alt=""
+                      className="w-10 h-10 ml-3 mt-2"
+                    />
+                  ))}
+              </div>
             </div>
           </div>
         </div>
