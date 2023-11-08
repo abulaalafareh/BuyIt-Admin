@@ -1,3 +1,4 @@
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-export { Header, Sidebar };
+import CreateProduct from "./CreateProduct";
+export { Header, Sidebar, CreateProduct };

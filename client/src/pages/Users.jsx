@@ -1,5 +1,5 @@
 function Users() {
-  return <div></div>;
+  return <div>THis is USER</div>;
 }
 
 export default Users;

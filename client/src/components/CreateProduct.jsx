@@ -2,6 +2,7 @@ import { useFormik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
 import { Image } from "cloudinary-react";
+import { FieldArray } from "formik";
 
 function CreateProduct() {
   const formData = {
@@ -9,26 +10,37 @@ function CreateProduct() {
     category: "",
     price: "",
     sale: "",
-    sizeCount: {},
     total: "",
     remaining: "",
     images: [],
+    image: "",
+    // size_quantity:{},
+    // size: '',
+    // quantity: 0,
   };
-  const [image, setImage] = useState(null);
+  // const [sizeQuantityPairs, setSizeQuantityPairs] = useState([]); // State to store size-quantity pairs
 
   const cloudName = process.env.VITE_REACT_APP_CLOUDINARY_CLOUD_NAME;
   const preset = process.env.VITE_REACT_APP_CLOUDINARY_UPLOAD_PRESET;
-  console.log(cloudName, preset);
 
-  // category selection
-  const [selectedCategory, setSelectedCategory] = useState(""); // State to hold the selected category
-  const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
-  };
+  // Function to handle adding size-quantity pairs
+  // const handleAddSizeQuantityPair = () => {
+  //   const { size, quantity } = formData;
+  //   if (size && quantity > 0) {
+  //     setFormData((prevData) => ({
+  //       ...prevData,
+  //       size_quantity: {
+  //         ...prevData.size_quantity,
+  //         [size]: quantity,
+  //       },
+  //       size: '', // Clear the input fields
+  //       quantity: 0,
+  //     }));
+  //   }
+  // };
 
-  //  upload image to cloudinary
-  const uploadImage = async (event) => {
-    const file = event.target.files[0];
+  const uploadImage = async (file) => {
+    console.log(file);
     const formData2 = new FormData();
     formData2.append("file", file);
     formData2.append("upload_preset", preset);
@@ -42,28 +54,41 @@ function CreateProduct() {
     );
 
     const data = await response.json();
-    setImage(data.secure_url);
-    formData.images.push(image);
-    console.log(image);
-    console.log(formData);
+    return data.secure_url;
   };
 
   const productSchema = Yup.object({
     name: Yup.string().required("Please enter a name."),
     category: Yup.string().required("Please select a category."),
     price: Yup.string().required("Please enter your price."),
+    // size: Yup.string().required("Please select a size."),
+    // quantity: Yup.number()
+    //   .positive("Quantity must be positive")
+    //   .integer("Quantity must be a whole number"),
     total: Yup.string().required("Please enter your total."),
-    sale: Yup.number("Enter a number below between 0-100"),
+    remaining: Yup.string().required("Please enter your remaining."),
+    // images: Yup.array()
+    //   .of(Yup.string().url("Invalid image URL"))
+    //   .required("At least one image is required"),
   });
 
-  const { values, errors, touched, handleBlur, handleChange, handleSubmit } =
-    useFormik({
-      initialValues: formData,
-      validationSchema: productSchema,
-      onSubmit: async (values) => {
-        console.log(values);
-      },
-    });
+  const {
+    values,
+    errors,
+    touched,
+    handleBlur,
+    handleChange,
+    handleSubmit,
+    setFieldValue,
+  } = useFormik({
+    initialValues: formData,
+    validationSchema: productSchema,
+    onSubmit: async (values) => {
+      console.log("Form Values", values);
+      console.log("Errors", errors);
+      // Submit the form values here
+    },
+  });
 
   return (
     <div>
@@ -74,6 +99,8 @@ function CreateProduct() {
         <h1 className="text-center font-bold text-lg text-black ">
           Create New Product
         </h1>
+
+        {/* Name */}
 
         <div className="mb-4">
           <div className=" flex flex-row  gap-4">
@@ -99,6 +126,8 @@ function CreateProduct() {
               ) : null}
             </div>
 
+            {/* Price */}
+
             <div>
               <label
                 className="block text-gray-700 text-sm font-semibold mb-2"
@@ -120,6 +149,9 @@ function CreateProduct() {
                 <p className="text-red-500 form-error">{errors.price}</p>
               ) : null}
             </div>
+
+            {/* Category */}
+
             <div>
               <label
                 className="block text-gray-700 text-sm font-semibold mb-2"
@@ -131,8 +163,8 @@ function CreateProduct() {
                 className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="category"
                 name="category"
-                value={selectedCategory}
-                onChange={handleCategoryChange}
+                value={values.category}
+                onChange={handleChange}
               >
                 <option value="">Select a category</option>
                 <option value="Men">Men</option>
@@ -143,6 +175,8 @@ function CreateProduct() {
             </div>
           </div>
         </div>
+
+        {/* Total Items */}
 
         <div className="mb-4">
           <div className="grid grid-cols-2 gap-4">
@@ -158,7 +192,7 @@ function CreateProduct() {
                 id="total"
                 name="total"
                 type="text"
-                placeholder="total"
+                placeholder="0"
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.total}
@@ -167,6 +201,8 @@ function CreateProduct() {
                 <p className="text-red-500 form-error">{errors.total}</p>
               ) : null}
             </div>
+
+            {/* Remaining Items */}
 
             <div>
               <label
@@ -180,7 +216,7 @@ function CreateProduct() {
                 id="remaining"
                 name="remaining"
                 type="text"
-                placeholder="remaining"
+                placeholder="0"
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.remaining}
@@ -192,6 +228,8 @@ function CreateProduct() {
           </div>
         </div>
 
+        {/* Sale */}
+
         <div className="mb-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -199,14 +237,14 @@ function CreateProduct() {
                 className="block text-gray-700 text-sm font-semibold mb-2"
                 htmlFor="sale"
               >
-                sale Items
+                Sale (%)
               </label>
               <input
                 className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="sale"
                 name="sale"
                 type="text"
-                placeholder="sale"
+                placeholder="0"
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.sale}
@@ -215,6 +253,8 @@ function CreateProduct() {
                 <p className="text-red-500 form-error">{errors.sale}</p>
               ) : null}
             </div>
+
+            {/* Images upload */}
 
             <div>
               <label
@@ -225,20 +265,99 @@ function CreateProduct() {
               </label>
               <input
                 className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="images"
-                name="images"
+                id="image"
+                name="image"
                 type="file"
-                placeholder="images"
+                placeholder="image"
+                onChange={handleChange}
                 onBlur={handleBlur}
-                value={values.images}
-                onChange={uploadImage}
+                value={values.image}
               />
-              {errors.images && touched.images ? (
-                <p className="text-red-500 form-error">{errors.images}</p>
-              ) : null}
+              <button
+                type="button"
+                onClick={() =>
+                  setFieldValue("images", [
+                    ...values.images,
+                    uploadImage(values.image),
+                  ])
+                } // add an empty string to the array
+              >
+                Add image
+              </button>
             </div>
           </div>
         </div>
+
+        {/* size */}
+
+        <div className="mb-4">
+          <div className=" flex flex-row  gap-4">
+            {/* <div>
+              <label
+                className="block text-gray-700 text-sm font-semibold mb-2"
+                htmlFor="size"
+              >
+                Size
+              </label>
+              <select
+                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="size"
+                name="size"
+                value={values.size}
+                onChange={handleChange}
+              >
+                <option value="">Select a size</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+              </select>
+            </div> */}
+
+            {/* Quantity */}
+
+            {/* <div>
+              <label
+                className="block text-gray-700 text-sm font-semibold mb-2"
+                htmlFor="quantity"
+              >
+                Quantity
+              </label>
+              <input
+                className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="quantity"
+                name="quantity"
+                type="text"
+                placeholder="Quantity"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={values.quantity}
+              />
+              {errors.quantity && touched.quantity ? (
+                <p className="text-red-500 form-error">{errors.quantity}</p>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              className="bg-black text-white px-2 py-1 rounded h-10 mt-7"
+              onClick={() => handleAddSizeQuantityPair(setFieldValue)}
+            >
+              Add
+            </button> */}
+          </div>
+          {/* <ul className="flex flex-row">
+            {sizeQuantityPairs.map((pair, index) => (
+              <li
+                key={index}
+                className="text-black"
+              >{`${pair.size}: ${pair.quantity}`}</li>
+            ))}
+          </ul> */}
+        </div>
+
+        {/* Form Submission Button */}
+
         <div className="flex items-center justify-center">
           <button
             className="hover:bg-green-700 shadow-md rounded-full px-6 py-3 font-semibold text-white bg-button"
@@ -247,14 +366,6 @@ function CreateProduct() {
             Add product
           </button>
         </div>
-        {image && (
-          <Image
-            cloudName="your_cloud_name"
-            publicId={image}
-            width="300"
-            crop="scale"
-          />
-        )}
       </form>
     </div>
   );

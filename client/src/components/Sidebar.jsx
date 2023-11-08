@@ -24,7 +24,7 @@ function Sidebar() {
         </button>
       </Link>
 
-      <Link className="nav-link active ml-7 mt-7 " to="/login">
+      <Link className="nav-link active ml-7 mt-7 " to="/users">
         <button
           className="hover:bg-green-700 shadow-md rounded-full px-6 py-3 font-semibold text-white bg-button"
           type="click"
