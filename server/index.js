@@ -15,8 +15,8 @@ app.use(
   })
 );
 
-app.use("/auth", require("./routes/usersAuth"));
+app.use("/admin/products", require("./routes/products"));
 
 app.listen(port, () => {
-  console.log(`BuyIt listening on port http://localhost:${port}`);
+  console.log(`BuyIt Admin listening on port http://localhost:${port}`);
 });

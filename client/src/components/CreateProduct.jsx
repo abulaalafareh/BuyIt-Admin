@@ -1,8 +1,6 @@
 import { useFormik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
-import { Image } from "cloudinary-react";
-import { FieldArray } from "formik";
 
 function CreateProduct() {
   const formData = {
@@ -14,30 +12,39 @@ function CreateProduct() {
     remaining: "",
     images: [],
     image: "",
-    // size_quantity:{},
-    // size: '',
-    // quantity: 0,
+    size_quantity: {
+      "1S": 0,
+      "1M": 0,
+      "1L": 0,
+      "1XL": 0,
+      "2XL": 0,
+      "3XL": 0,
+    },
+    size: "",
+    quantity: 0,
   };
-  // const [sizeQuantityPairs, setSizeQuantityPairs] = useState([]); // State to store size-quantity pairs
+  const [sizeQuantity, setSizeQuantity] = useState({
+    "1S": 0,
+    "1M": 0,
+    "1L": 0,
+    "1XL": 0,
+    "2XL": 0,
+    "3XL": 0,
+  });
   const [img, setImg] = useState([]);
   const cloudName = process.env.VITE_REACT_APP_CLOUDINARY_CLOUD_NAME;
   const preset = process.env.VITE_REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
-  // Function to handle adding size-quantity pairs
-  // const handleAddSizeQuantityPair = () => {
-  //   const { size, quantity } = formData;
-  //   if (size && quantity > 0) {
-  //     setFormData((prevData) => ({
-  //       ...prevData,
-  //       size_quantity: {
-  //         ...prevData.size_quantity,
-  //         [size]: quantity,
-  //       },
-  //       size: '', // Clear the input fields
-  //       quantity: 0,
-  //     }));
-  //   }
-  // };
+  const handleAddSizeQuantityPair = () => {
+    // Use values.size and values.quantity to get the most recent values
+    const size = values.size;
+    const quantity = values.quantity;
+
+    setSizeQuantity((prevState) => ({
+      ...prevState,
+      [size]: quantity,
+    }));
+  };
 
   const uploadImage = async (file) => {
     const selectedFile = file.target.files[0];
@@ -64,10 +71,10 @@ function CreateProduct() {
     name: Yup.string().required("Please enter a name."),
     category: Yup.string().required("Please select a category."),
     price: Yup.string().required("Please enter your price."),
-    // size: Yup.string().required("Please select a size."),
-    // quantity: Yup.number()
-    //   .positive("Quantity must be positive")
-    //   .integer("Quantity must be a whole number"),
+    size: Yup.string().required("Please select a size."),
+    quantity: Yup.number()
+      .positive("Quantity must be positive")
+      .integer("Quantity must be a whole number"),
     total: Yup.string().required("Please enter your total."),
     remaining: Yup.string().required("Please enter your remaining."),
     // images: Yup.array()
@@ -81,6 +88,8 @@ function CreateProduct() {
       validationSchema: productSchema,
       onSubmit: async (values) => {
         values.images = img;
+        formData.size_quantity = sizeQuantity;
+
         console.log("Form Values", values);
         console.log("Errors", errors);
         // Submit the form values here
@@ -289,7 +298,7 @@ function CreateProduct() {
 
         <div className="mb-4">
           <div className=" flex flex-row  gap-4">
-            {/* <div>
+            <div>
               <label
                 className="block text-gray-700 text-sm font-semibold mb-2"
                 htmlFor="size"
@@ -304,16 +313,18 @@ function CreateProduct() {
                 onChange={handleChange}
               >
                 <option value="">Select a size</option>
-                <option value="S">S</option>
-                <option value="M">M</option>
-                <option value="L">L</option>
-                <option value="XL">XL</option>
+                <option value="1S">S</option>
+                <option value="1M">M</option>
+                <option value="1L">L</option>
+                <option value="1XL">XL</option>
+                <option value="2XL">2XL</option>
+                <option value="3XL">3XL</option>
               </select>
-            </div> */}
+            </div>
 
             {/* Quantity */}
 
-            {/* <div>
+            <div>
               <label
                 className="block text-gray-700 text-sm font-semibold mb-2"
                 htmlFor="quantity"
@@ -338,19 +349,23 @@ function CreateProduct() {
             <button
               type="button"
               className="bg-black text-white px-2 py-1 rounded h-10 mt-7"
-              onClick={() => handleAddSizeQuantityPair(setFieldValue)}
+              onClick={() => handleAddSizeQuantityPair()}
             >
               Add
-            </button> */}
+            </button>
           </div>
-          {/* <ul className="flex flex-row">
-            {sizeQuantityPairs.map((pair, index) => (
-              <li
-                key={index}
-                className="text-black"
-              >{`${pair.size}: ${pair.quantity}`}</li>
-            ))}
-          </ul> */}
+          <ul className="flex flex-row">
+            {Object.entries(sizeQuantity).map(([size, quantity], index) => {
+              if (quantity > 0) {
+                return (
+                  <li key={index} className="text-black">
+                    {`${size}: ${quantity}`}
+                  </li>
+                );
+              }
+              return null;
+            })}
+          </ul>
         </div>
 
         {/* Form Submission Button */}
