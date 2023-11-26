@@ -1,6 +1,7 @@
 import { useFormik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
+import axios from "axios";
 
 function CreateProduct() {
   const formData = {
@@ -88,8 +89,22 @@ function CreateProduct() {
       validationSchema: productSchema,
       onSubmit: async (values) => {
         values.images = img;
-        formData.size_quantity = sizeQuantity;
+        values.size_quantity = sizeQuantity;
+        console.log(values.images.length);
+        if (values.images.length == 0) {
+          console.log("values.images.length");
+          alert("At least upload one Image");
+        }
 
+        try {
+          const response = await axios.post(
+            "http://localhost:5000/admin/products/addProduct",
+            values
+          );
+          console.log(response);
+        } catch (error) {
+          console.error(error.response.data);
+        }
         console.log("Form Values", values);
         console.log("Errors", errors);
         // Submit the form values here
